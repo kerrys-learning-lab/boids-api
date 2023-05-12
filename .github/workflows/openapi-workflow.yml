@@ -5,26 +5,30 @@ on: [push, workflow_dispatch]
 env:
   OPENAPI_MODEL_PACKAGE: boids
   OPENAPI_PACKAGE_NAME: boidsapi
+  PROJECT_DESCRIPTION: TODO
+  PROJECT_README: README.md
 
 jobs:
   prerequisites:
     runs-on: ubuntu-latest
     outputs:
       openapi_files_exist: ${{ steps.openapi_files.outputs.files_exists }}
+      authors: ${{ steps.list_authors.outputs.authors }}
 
     steps:
 
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Get authors
+        id: list_authors
+        run: echo "authors=\"$(echo -n $(git authors -l) | head -n 5 | tr '\n' ',')\"" >> "$GITHUB_OUTPUT"
+
       - name: Check file existence
         id: openapi_files
         uses: andstor/file-existence-action@v2
         with:
           files: openapi.yaml
-
-      - name: File exists
-        run: echo ${{ steps.openapi_files.outputs.files_exists }}
 
   generate-angular-client:
     runs-on: ubuntu-latest
@@ -45,6 +49,22 @@ jobs:
             --model-package ${{ env.OPENAPI_MODEL_PACKAGE }}
             --package-name ${{ env.OPENAPI_PACKAGE_NAME }}
 
+      - name: Generate NPM package configuration
+        uses: edgardleal/mustache-template-action@v1.0.0
+        env:
+          project_name: ${{ github.event.repository.repo }}
+          project_version:  ${{ github.ref }}
+          project_description: ${{ env.PROJECT_DESCRIPTION }}
+          project_authors: ${{ needs.prerequisites.outputs.authors }}
+          project_readme: ${{ env.PROJECT_README }}
+          project_git_url: ${{ github.repositoryUrl }}
+        with:
+          input: .package.json.mustache
+          output: typescript-angular/package.json
+
+      - name: Show package configuration
+        run: cat typescript-angular/package.json
+
   generate-python-flask-client:
     runs-on: ubuntu-latest
     name: Generate OpenAPI Python Flask client
@@ -63,3 +83,19 @@ jobs:
           command-args: >-
             --model-package ${{ env.OPENAPI_MODEL_PACKAGE }}
             --package-name ${{ env.OPENAPI_PACKAGE_NAME }}
+
+      - name: Generate Python package configuration
+        uses: edgardleal/mustache-template-action@v1.0.0
+        env:
+          project_name: ${{ github.event.repository.repo }}
+          project_version:  ${{ github.ref }}
+          project_description: ${{ env.PROJECT_DESCRIPTION }}
+          project_authors: ${{ needs.prerequisites.outputs.authors }}
+          project_readme: ${{ env.PROJECT_README }}
+          project_git_url: ${{ github.repositoryUrl }}
+        with:
+          input: .pyproject.toml.mustache
+          output: python-flask/pyproject.toml
+
+      - name: Show package configuration
+        run: cat python-flask/pyproject.toml
