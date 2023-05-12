@@ -20,15 +20,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Install packages
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: git-extras
+          version: 1.0
+
       - name: Get authors
         id: list_authors
-        run: echo "authors=\"$(echo -n $(git authors -l) | head -n 5 | tr '\n' ',')\"" >> "$GITHUB_OUTPUT"
+        run: |
+          git authors -l | head -n 5 >  /tmp/authors
+          sed -i 's/\(.*\)/\\"\1\\"/g' /tmp/authors
+          echo "authors="$(cat /tmp/authors | tr '\n' ',')"" >> "$GITHUB_ENV"
 
       - name: Check file existence
         id: openapi_files
         uses: andstor/file-existence-action@v2
         with:
           files: openapi.yaml
+
+      - name: Show authors
+        run: echo "${{ steps.list_authors.outputs.authors }}"
 
   generate-angular-client:
     runs-on: ubuntu-latest
@@ -50,17 +62,17 @@ jobs:
             --package-name ${{ env.OPENAPI_PACKAGE_NAME }}
 
       - name: Generate NPM package configuration
-        uses: edgardleal/mustache-template-action@v1.0.0
-        env:
-          project_name: ${{ github.event.repository.repo }}
-          project_version:  ${{ github.ref }}
-          project_description: ${{ env.PROJECT_DESCRIPTION }}
-          project_authors: ${{ needs.prerequisites.outputs.authors }}
-          project_readme: ${{ env.PROJECT_README }}
-          project_git_url: ${{ github.repositoryUrl }}
+        uses: chuhlomin/render-template@v1.7
         with:
-          input: .package.json.mustache
-          output: typescript-angular/package.json
+          vars: |
+            project_name: ${{ github.event.repository.repo }}
+            project_version:  ${{ github.ref }}
+            project_description: ${{ env.PROJECT_DESCRIPTION }}
+            project_authors: ${{ needs.prerequisites.outputs.authors }}
+            project_readme: ${{ env.PROJECT_README }}
+            project_git_url: ${{ github.repositoryUrl }}
+          template: .package.json.tmpl
+          result_path: typescript-angular/package.json
 
       - name: Show package configuration
         run: cat typescript-angular/package.json
@@ -85,17 +97,17 @@ jobs:
             --package-name ${{ env.OPENAPI_PACKAGE_NAME }}
 
       - name: Generate Python package configuration
-        uses: edgardleal/mustache-template-action@v1.0.0
-        env:
-          project_name: ${{ github.event.repository.repo }}
-          project_version:  ${{ github.ref }}
-          project_description: ${{ env.PROJECT_DESCRIPTION }}
-          project_authors: ${{ needs.prerequisites.outputs.authors }}
-          project_readme: ${{ env.PROJECT_README }}
-          project_git_url: ${{ github.repositoryUrl }}
+        uses: chuhlomin/render-template@v1.7
         with:
-          input: .pyproject.toml.mustache
-          output: python-flask/pyproject.toml
+          vars: |
+            project_name: ${{ github.event.repository.repo }}
+            project_version:  ${{ github.ref }}
+            project_description: ${{ env.PROJECT_DESCRIPTION }}
+            project_authors: ${{ needs.prerequisites.outputs.authors }}
+            project_readme: ${{ env.PROJECT_README }}
+            project_git_url: ${{ github.repositoryUrl }}
+          template: .pyproject.toml.tmpl
+          result_path: python-flask/pyproject.toml
 
       - name: Show package configuration
         run: cat python-flask/pyproject.toml
