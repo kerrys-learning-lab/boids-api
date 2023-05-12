@@ -1,0 +1,61 @@
+name: OpenAPI Workflow
+
+on: [push, workflow_dispatch]
+
+env:
+  OPENAPI_MODEL_PACKAGE: boids
+  OPENAPI_PACKAGE_NAME: boidsapi
+
+jobs:
+  test-openapi-files:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Check file existence
+        id: openapi_files
+        uses: andstor/file-existence-action@v2
+        with:
+          files: openapi.yaml
+
+  generate-angular-client:
+    runs-on: ubuntu-latest
+    name: Generate OpenAPI TypeScript client
+    needs: test-openapi-files
+    if: needs.openapi_files.outputs.files_exists == 'true'
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Generate OpenAPI TypeScript Client
+        uses: openapi-generators/openapitools-generator-action@v1
+        with:
+          generator: typescript-angular
+          openapi-file: openapi.yaml
+          config-file: angular-generator-config.yml
+          command-args: >-
+            --model-package ${{ env.OPENAPI_MODEL_PACKAGE }}
+            --package-name ${{ env.OPENAPI_PACKAGE_NAME }}
+
+  generate-python-flask-client:
+    runs-on: ubuntu-latest
+    name: Generate OpenAPI TypeScript client
+    needs: test-openapi-files
+    if: needs.openapi_files.outputs.files_exists == 'true'
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Generate OpenAPI TypeScript Client
+        uses: openapi-generators/openapitools-generator-action@v1
+        with:
+          generator: python-flask
+          openapi-file: openapi.yaml
+          config-file: angular-generator-config.yml
+          command-args: >-
+            --model-package ${{ env.OPENAPI_MODEL_PACKAGE }}
+            --package-name ${{ env.OPENAPI_PACKAGE_NAME }}
