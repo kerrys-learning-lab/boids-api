@@ -7,8 +7,11 @@ env:
   OPENAPI_PACKAGE_NAME: boidsapi
 
 jobs:
-  test-openapi-files:
+  prerequisites:
     runs-on: ubuntu-latest
+    outputs:
+      openapi_files_exist: ${{ steps.openapi_files.outputs.files_exists }}
+
     steps:
 
       - name: Checkout repository
@@ -20,11 +23,14 @@ jobs:
         with:
           files: openapi.yaml
 
+      - name: File exists
+        run: echo ${{ steps.openapi_files.outputs.files_exists }}
+
   generate-angular-client:
     runs-on: ubuntu-latest
     name: Generate OpenAPI TypeScript client
-    needs: test-openapi-files
-    if: needs.openapi_files.outputs.files_exists == 'true'
+    needs: prerequisites
+    if: needs.prerequisites.outputs.openapi_files_exist == 'true'
     steps:
 
       - name: Checkout repository
@@ -35,27 +41,25 @@ jobs:
         with:
           generator: typescript-angular
           openapi-file: openapi.yaml
-          config-file: angular-generator-config.yml
           command-args: >-
             --model-package ${{ env.OPENAPI_MODEL_PACKAGE }}
             --package-name ${{ env.OPENAPI_PACKAGE_NAME }}
 
   generate-python-flask-client:
     runs-on: ubuntu-latest
-    name: Generate OpenAPI TypeScript client
-    needs: test-openapi-files
-    if: needs.openapi_files.outputs.files_exists == 'true'
+    name: Generate OpenAPI Python Flask client
+    needs: prerequisites
+    if: needs.prerequisites.outputs.openapi_files_exist == 'true'
     steps:
 
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Generate OpenAPI TypeScript Client
+      - name: Generate OpenAPI Python Flask Client
         uses: openapi-generators/openapitools-generator-action@v1
         with:
           generator: python-flask
           openapi-file: openapi.yaml
-          config-file: angular-generator-config.yml
           command-args: >-
             --model-package ${{ env.OPENAPI_MODEL_PACKAGE }}
             --package-name ${{ env.OPENAPI_PACKAGE_NAME }}
