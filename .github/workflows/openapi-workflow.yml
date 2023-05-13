@@ -29,7 +29,9 @@ jobs:
       - name: Get authors
         id: list_authors
         run: |
+          git authors -l
           git authors -l | head -n 5 >  /tmp/authors
+          ls -alF /tmp
           cat /tmp/authors
           sed -i 's/\(.*\)/\\"\1\\"/g' /tmp/authors
           cat /tmp/authors
