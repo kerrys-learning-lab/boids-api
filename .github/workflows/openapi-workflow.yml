@@ -30,8 +30,11 @@ jobs:
         id: list_authors
         run: |
           git authors -l | head -n 5 >  /tmp/authors
+          cat /tmp/authors
           sed -i 's/\(.*\)/\\"\1\\"/g' /tmp/authors
-          echo "authors="$(cat /tmp/authors | tr '\n' ',')"" >> "$GITHUB_ENV"
+          cat /tmp/authors
+          echo "authors=\"$(cat /tmp/authors | tr '\n' ',')\"" >> "$GITHUB_ENV"
+          cat "$GITHUB_ENV"
 
       - name: Check file existence
         id: openapi_files
