@@ -29,9 +29,8 @@ jobs:
       - name: Get authors
         id: list_authors
         run: |
-          git authors -l
           git authors -l | head -n 5 >  /tmp/authors
-          ls -alF /tmp
+          [ -s /tmp/authors ] || echo ${KERRYS_LEARNING_LAB_DEFAULT_AUTHORS} > /tmp/authors
           cat /tmp/authors
           sed -i 's/\(.*\)/\\"\1\\"/g' /tmp/authors
           cat /tmp/authors
@@ -69,7 +68,7 @@ jobs:
       - name: Generate NPM package configuration
         uses: chuhlomin/render-template@v1.7
         with:
-          vars: |
+          vars: >
             project_name: ${{ github.event.repository.repo }}
             project_version:  ${{ github.ref }}
             project_description: ${{ env.PROJECT_DESCRIPTION }}
