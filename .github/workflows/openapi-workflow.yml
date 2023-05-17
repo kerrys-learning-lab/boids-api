@@ -56,7 +56,7 @@ jobs:
           output_file: typescript-angular/package.json
           strict: true
           variables: |
-            project_version:  ${{ github.ref }}
+            project_version=${{ github.ref }}
 
       - name: Show package configuration
         run: cat typescript-angular/package.json
@@ -87,7 +87,7 @@ jobs:
           output_file: python-flask/pyproject.toml
           strict: true
           variables: |
-            project_version:  ${{ github.ref }}
+            project_version=${{ github.ref }}
 
       - name: Show package configuration
         run: cat python-flask/pyproject.toml
