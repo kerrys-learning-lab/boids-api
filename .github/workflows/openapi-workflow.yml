@@ -5,8 +5,6 @@ on: [push, workflow_dispatch]
 env:
   OPENAPI_MODEL_PACKAGE: boids
   OPENAPI_PACKAGE_NAME: boidsapi
-  PROJECT_DESCRIPTION: TODO
-  PROJECT_README: README.md
 
 jobs:
   prerequisites:
@@ -26,25 +24,11 @@ jobs:
           packages: git-extras
           version: 1.0
 
-      - name: Get authors
-        id: list_authors
-        run: |
-          git authors -l | head -n 5 >  /tmp/authors
-          [ -s /tmp/authors ] || echo ${KERRYS_LEARNING_LAB_DEFAULT_AUTHORS} > /tmp/authors
-          cat /tmp/authors
-          sed -i 's/\(.*\)/\\"\1\\"/g' /tmp/authors
-          cat /tmp/authors
-          echo "authors=\"$(cat /tmp/authors | tr '\n' ',')\"" >> "$GITHUB_ENV"
-          cat "$GITHUB_ENV"
-
       - name: Check file existence
         id: openapi_files
         uses: andstor/file-existence-action@v2
         with:
           files: openapi.yaml
-
-      - name: Show authors
-        run: echo "${{ steps.list_authors.outputs.authors }}"
 
   generate-angular-client:
     runs-on: ubuntu-latest
@@ -66,17 +50,13 @@ jobs:
             --package-name ${{ env.OPENAPI_PACKAGE_NAME }}
 
       - name: Generate NPM package configuration
-        uses: chuhlomin/render-template@v1.7
+        uses: cuchi/jinja2-action@v1.2.0
         with:
-          vars: >
-            project_name: ${{ github.event.repository.repo }}
+          template: .package.json.j2
+          output_file: typescript-angular/package.json
+          strict: true
+          variables: |
             project_version:  ${{ github.ref }}
-            project_description: ${{ env.PROJECT_DESCRIPTION }}
-            project_authors: ${{ needs.prerequisites.outputs.authors }}
-            project_readme: ${{ env.PROJECT_README }}
-            project_git_url: ${{ github.repositoryUrl }}
-          template: .package.json.tmpl
-          result_path: typescript-angular/package.json
 
       - name: Show package configuration
         run: cat typescript-angular/package.json
@@ -100,18 +80,14 @@ jobs:
             --model-package ${{ env.OPENAPI_MODEL_PACKAGE }}
             --package-name ${{ env.OPENAPI_PACKAGE_NAME }}
 
-      - name: Generate Python package configuration
-        uses: chuhlomin/render-template@v1.7
+      - name: Generate NPM package configuration
+        uses: cuchi/jinja2-action@v1.2.0
         with:
-          vars: |
-            project_name: ${{ github.event.repository.repo }}
+          template: .pyproject.toml.j2
+          output_file: python-flask/pyproject.toml
+          strict: true
+          variables: |
             project_version:  ${{ github.ref }}
-            project_description: ${{ env.PROJECT_DESCRIPTION }}
-            project_authors: ${{ needs.prerequisites.outputs.authors }}
-            project_readme: ${{ env.PROJECT_README }}
-            project_git_url: ${{ github.repositoryUrl }}
-          template: .pyproject.toml.tmpl
-          result_path: python-flask/pyproject.toml
 
       - name: Show package configuration
         run: cat python-flask/pyproject.toml

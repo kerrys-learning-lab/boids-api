@@ -1,5 +1,7 @@
 # Boids API
 
+**API specification for the Boids application**
+
 Generate TypeScript and Python (Flask) code:
 
 > NOTE: Code is generated to `./out/typescript-angular` and `./out/python-flask`, respectively
