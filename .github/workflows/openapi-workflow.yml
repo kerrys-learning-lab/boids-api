@@ -64,7 +64,7 @@ jobs:
           output_file: ${{ env.TYPESCRIPT_GEN_DIR }}/package.json
           strict: true
           variables: |
-            project_version=${{ github.ref }}
+            project_version=${{ needs.prerequisites.outputs.tag }}
 
       - name: Show package configuration
         run: cat ${{ env.TYPESCRIPT_GEN_DIR }}/package.json
@@ -95,7 +95,7 @@ jobs:
           output_file: ${{ env.PYTHON_FLASK_GEN_DIR }}/pyproject.toml
           strict: true
           variables: |
-            project_version=${{ github.ref }}
+            project_version=${{ needs.prerequisites.outputs.tag }}
 
       - name: Show package configuration
         run: cat ${{ env.PYTHON_FLASK_GEN_DIR }}/pyproject.toml
