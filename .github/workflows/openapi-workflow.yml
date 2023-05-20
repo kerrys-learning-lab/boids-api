@@ -5,6 +5,8 @@ on: [push, workflow_dispatch]
 env:
   OPENAPI_MODEL_PACKAGE: boids
   OPENAPI_PACKAGE_NAME: boidsapi
+  TYPESCRIPT_GEN_DIR: typescript-angular-client
+  PYTHON_FLASK_GEN_DIR: python-flask-client
 
 jobs:
   prerequisites:
@@ -53,13 +55,13 @@ jobs:
         uses: cuchi/jinja2-action@v1.2.0
         with:
           template: .package.json.j2
-          output_file: typescript-angular-client/package.json
+          output_file: ${{ env.TYPESCRIPT_GEN_DIR }}/package.json
           strict: true
           variables: |
             project_version=${{ github.ref }}
 
       - name: Show package configuration
-        run: cat typescript-angular/package.json
+        run: cat ${{ env.TYPESCRIPT_GEN_DIR }}/package.json
 
   generate-python-flask-client:
     runs-on: ubuntu-latest
@@ -84,10 +86,10 @@ jobs:
         uses: cuchi/jinja2-action@v1.2.0
         with:
           template: .pyproject.toml.j2
-          output_file: python-flask-client/pyproject.toml
+          output_file: ${{ env.PYTHON_FLASK_GEN_DIR }}/pyproject.toml
           strict: true
           variables: |
             project_version=${{ github.ref }}
 
       - name: Show package configuration
-        run: cat python-flask/pyproject.toml
+        run: cat ${{ env.PYTHON_FLASK_GEN_DIR }}/pyproject.toml
