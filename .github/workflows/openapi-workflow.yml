@@ -53,7 +53,7 @@ jobs:
         uses: cuchi/jinja2-action@v1.2.0
         with:
           template: .package.json.j2
-          output_file: typescript-angular/package.json
+          output_file: typescript-angular-client/package.json
           strict: true
           variables: |
             project_version=${{ github.ref }}
@@ -84,7 +84,7 @@ jobs:
         uses: cuchi/jinja2-action@v1.2.0
         with:
           template: .pyproject.toml.j2
-          output_file: python-flask/pyproject.toml
+          output_file: python-flask-client/pyproject.toml
           strict: true
           variables: |
             project_version=${{ github.ref }}
