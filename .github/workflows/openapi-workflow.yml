@@ -73,7 +73,7 @@ jobs:
           output_file: ${{ env.TYPESCRIPT_GEN_DIR }}/.npmrc
           strict: true
           variables: |
-            github_token=${{ env.GITHUB_TOKEN }}
+            github_token=${{ secrets.KERRYS_LEARNING_LAB_TOKEN }}
 
       - name: Publish package
         run: |
