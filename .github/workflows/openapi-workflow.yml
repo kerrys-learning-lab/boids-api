@@ -66,7 +66,7 @@ jobs:
           variables: |
             project_version=${{ needs.prerequisites.outputs.tag }}
 
-      - name: Generate NPM package configuration
+      - name: Generate NPM authentication file
         uses: cuchi/jinja2-action@v1.2.0
         with:
           template: .npmrc.j2
