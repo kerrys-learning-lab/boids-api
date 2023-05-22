@@ -4,7 +4,7 @@ on: [push, workflow_dispatch]
 
 env:
   OPENAPI_MODEL_PACKAGE: boids
-  OPENAPI_PACKAGE_NAME: boidsapi
+  OPENAPI_PACKAGE_NAME: boids-api
   TYPESCRIPT_GEN_DIR: typescript-angular-client
   PYTHON_FLASK_GEN_DIR: python-flask-client
 
