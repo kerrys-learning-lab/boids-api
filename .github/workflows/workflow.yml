@@ -4,7 +4,7 @@ on: [push, workflow_dispatch]
 
 env:
   OPENAPI_MODEL_PACKAGE: boids
-  OPENAPI_PACKAGE_NAME: boids-api
+  OPENAPI_PACKAGE_NAME: boids_api
   TYPESCRIPT_GEN_DIR: typescript-angular-client
   PYTHON_FLASK_GEN_DIR: python-flask-client
 
@@ -85,7 +85,7 @@ jobs:
     name: Generate OpenAPI Python Flask client
     environment:
       name: pypi
-      url: https://pypi.org/p/boids-api
+      url: https://pypi.org/p/boids_api
     permissions:
       id-token: write
     needs: prerequisites
