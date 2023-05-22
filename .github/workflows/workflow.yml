@@ -127,7 +127,7 @@ jobs:
           poetry-version: '1.4.2'
 
       - name: Build python wheel
-        run: poetry --directory ${{ env.PYTHON_FLASK_GEN_DIR }} build
+        run: poetry build
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
