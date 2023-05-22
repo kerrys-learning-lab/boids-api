@@ -83,6 +83,11 @@ jobs:
   generate-python-flask-client:
     runs-on: ubuntu-latest
     name: Generate OpenAPI Python Flask client
+    environment:
+      name: pypi
+      url: https://pypi.org/p/boids-api
+    permissions:
+      id-token: write
     needs: prerequisites
     if: needs.prerequisites.outputs.openapi_files_exist == 'true'
     steps:
@@ -99,7 +104,7 @@ jobs:
             --model-package ${{ env.OPENAPI_MODEL_PACKAGE }}
             --package-name ${{ env.OPENAPI_PACKAGE_NAME }}
 
-      - name: Generate NPM package configuration
+      - name: Generate PyPi package configuration
         uses: cuchi/jinja2-action@v1.2.0
         with:
           template: .pyproject.toml.j2
@@ -110,3 +115,21 @@ jobs:
 
       - name: Show package configuration
         run: cat ${{ env.PYTHON_FLASK_GEN_DIR }}/pyproject.toml
+
+      - name: Setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Setup poetry
+        uses: abatilo/actions-poetry@v2
+        with:
+          poetry-version: '1.4.2'
+
+      - name: Build python wheel
+        run: poetry --directory ${{ env.PYTHON_FLASK_GEN_DIR }} build
+
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: ${{ env.PYTHON_FLASK_GEN_DIR }}/dist
