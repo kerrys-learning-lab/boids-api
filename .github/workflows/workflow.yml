@@ -126,8 +126,16 @@ jobs:
         with:
           poetry-version: '1.4.2'
 
+      - name: Show current directory
+        run: ls -alF
+
+      - name: Show PYTHON_FLASK_GEN_DIR directory
+        run: ls -alFr
+        working-directory: ${{ env.PYTHON_FLASK_GEN_DIR }}
+
       - name: Build python wheel
         run: poetry build
+        working-directory: ${{ env.PYTHON_FLASK_GEN_DIR }}
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
