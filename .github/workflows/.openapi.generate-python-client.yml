@@ -58,16 +58,19 @@ jobs:
             project_version=${{ needs.prerequisites.outputs.tag }}
 
       - name: Setup python
+        if: inputs.publish
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
       - name: Setup poetry
+        if: inputs.publish
         uses: abatilo/actions-poetry@v2
         with:
           poetry-version: '1.4.2'
 
       - name: Build python wheel
+        if: inputs.publish
         run: poetry build
         working-directory: ${{ env.PYTHON_CLIENT_GEN_DIR }}
 
