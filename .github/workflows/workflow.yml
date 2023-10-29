@@ -1,4 +1,4 @@
-name: No-build workflow
+name: OpenAPI main workflow
 
 on: [push, workflow_dispatch]
 

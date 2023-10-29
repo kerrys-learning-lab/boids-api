@@ -44,7 +44,7 @@ jobs:
       - ref-check-repo-settings
     with:
       publish: ${{ inputs.publish }}
-      model_package: ${{ model_package }}
+      model_package: ${{ inputs.model_package }}
     secrets:
       actor_token: ${{ secrets.KERRYS_LEARNING_LAB_TOKEN }}
 
