@@ -44,6 +44,7 @@ jobs:
     with:
       publish: ${{ inputs.publish }}
       model_package: ${{ inputs.model_package }}
+      package_name: ${{ inputs.package_name }}
     secrets:
       actor_token: ${{ secrets.KERRYS_LEARNING_LAB_TOKEN }}
 
