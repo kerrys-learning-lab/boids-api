@@ -5,7 +5,7 @@ on: [push, workflow_dispatch]
 jobs:
 
   ref-openapi:
-    uses: ./.github/workflows/.openapi.workflow.yml
+    uses: ./.github/workflows/openapi.workflow.yml
     with:
       publish: true
       model_package: boids
