@@ -34,7 +34,6 @@ jobs:
     name: Generate OpenAPI Python Flask client
     permissions:
       id-token: write
-    needs: prerequisites
     steps:
 
       - name: Checkout repository
