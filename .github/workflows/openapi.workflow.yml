@@ -1,0 +1,64 @@
+name: OpenAPI Workflow
+
+on:
+  workflow_call:
+    inputs:
+      publish:
+        description: >
+          If true, publishes to the applicable (language-dependent)
+          package repositories
+        type: boolean
+        default: true
+        required: false
+      package_name:
+        description: >
+          Overarching package name (if applicable, depending on generated language).
+          Contains the model package and (potentially) controllers, test code, etc.
+        type: string
+        required: false
+        default: open_api
+      model_package:
+        description: Package name (snake_case) for the domain model
+        type: string
+        required: true
+    secrets:
+      actor_token:
+        description: |
+          GITHUB_TOKEN or PAT authorized to make changes to the repository
+        required: true
+
+jobs:
+  ref-prerequisites:
+    uses: ./.github/workflows/.prerequisites.yml
+
+  ref-check-repo-settings:
+    uses: kerrys-learning-lab/.github/.github/workflows/.check-repo-settings.yml@main
+    secrets:
+      actor_token: ${{ secrets.actor_token }}
+
+  ref-bump-version:
+    uses: kerrys-learning-lab/.github/.github/workflows/.bump-version.yml@main
+    needs:
+      - ref-build-and-push-image
+      - ref-check-repo-settings
+    secrets:
+      actor_name: ${{ secrets.actor_name }}
+      actor_token: ${{ secrets.actor_token }}
+      actor_email: ${{ secrets.actor_email }}
+
+  ref-generate-angular-client:
+    uses: ./.github/workflows/.openapi.generate-angular-client.yml
+    with:
+      publish: ${{ inputs.publish }}
+      model_package: ${{ model_package }}
+    secrets:
+      actor_token: ${{ secrets.KERRYS_LEARNING_LAB_TOKEN }}
+
+  ref-generate-python-client:
+    uses: ./.github/workflows/.openapi.generate-python-client.yml
+    with:
+      publish: ${{ inputs.publish }}
+      model_package: ${{ inputs.model_package }}
+      package_name: ${{ inputs.package_name }}
+    secrets:
+      actor_token: ${{ secrets.KERRYS_LEARNING_LAB_TOKEN }}
