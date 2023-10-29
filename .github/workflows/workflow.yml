@@ -7,7 +7,7 @@ jobs:
   ref-openapi:
     uses: ./.github/workflows/openapi.workflow.yml
     with:
-      publish: true
+      publish: ${{ startsWith( github.ref, 'refs/tags/v') || contains(github.event.head_commit.message, '[test ci]') }}
       model_package: boids
       package_name: boids_api
     secrets:

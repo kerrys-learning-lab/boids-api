@@ -25,7 +25,7 @@ on:
         required: true
 
 env:
-  PYTHON_CLIENT_GEN_DIR: python-aiohttp
+  PYTHON_CLIENT_GEN_DIR: python-aiohttp-client
 
 jobs:
 
