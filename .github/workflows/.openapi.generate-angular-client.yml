@@ -8,6 +8,12 @@ on:
         type: boolean
         default: true
         required: false
+      package_name:
+        description: >
+          Overarching Python package name (snake_case).  Contains the model
+          package and (potentially) controllers, test code, etc.
+        type: string
+        required: true
       model_package:
         description: Angular package name (snake_case) for the domain model
         type: string
@@ -26,7 +32,6 @@ jobs:
   generate-angular-client:
     runs-on: ubuntu-latest
     name: Generate OpenAPI TypeScript client
-    needs: prerequisites
     steps:
 
       - name: Checkout repository
@@ -60,5 +65,6 @@ jobs:
             github_token=${{ secrets.actor_token }}
 
       - name: Publish package
+        if: inputs.publish
         run: npm publish
         working-directory: ${{ env.TYPESCRIPT_GEN_DIR }}

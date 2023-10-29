@@ -29,36 +29,45 @@ on:
 
 jobs:
   ref-prerequisites:
-    uses: ./.github/workflows/.prerequisites.yml
+    uses: kerrys-learning-lab/.github/.github/workflows/.prerequisites.yml@main
 
   ref-check-repo-settings:
     uses: kerrys-learning-lab/.github/.github/workflows/.check-repo-settings.yml@main
     secrets:
       actor_token: ${{ secrets.actor_token }}
 
-  ref-bump-version:
-    uses: kerrys-learning-lab/.github/.github/workflows/.bump-version.yml@main
-    needs:
-      - ref-build-and-push-image
-      - ref-check-repo-settings
-    secrets:
-      actor_name: ${{ secrets.actor_name }}
-      actor_token: ${{ secrets.actor_token }}
-      actor_email: ${{ secrets.actor_email }}
-
   ref-generate-angular-client:
     uses: ./.github/workflows/.openapi.generate-angular-client.yml
-    with:
-      publish: ${{ inputs.publish }}
-      model_package: ${{ model_package }}
-    secrets:
-      actor_token: ${{ secrets.KERRYS_LEARNING_LAB_TOKEN }}
-
-  ref-generate-python-client:
-    uses: ./.github/workflows/.openapi.generate-python-client.yml
+    needs:
+      - ref-prerequisites
+      - ref-check-repo-settings
     with:
       publish: ${{ inputs.publish }}
       model_package: ${{ inputs.model_package }}
       package_name: ${{ inputs.package_name }}
     secrets:
       actor_token: ${{ secrets.KERRYS_LEARNING_LAB_TOKEN }}
+
+  ref-generate-python-client:
+    uses: ./.github/workflows/.openapi.generate-python-client.yml
+    needs:
+      - ref-prerequisites
+      - ref-check-repo-settings
+    with:
+      publish: ${{ inputs.publish }}
+      model_package: ${{ inputs.model_package }}
+      package_name: ${{ inputs.package_name }}
+    secrets:
+      actor_token: ${{ secrets.KERRYS_LEARNING_LAB_TOKEN }}
+
+  ref-bump-version:
+    uses: kerrys-learning-lab/.github/.github/workflows/.bump-version.yml@main
+    needs:
+      - ref-prerequisites
+      - ref-check-repo-settings
+      - ref-generate-angular-client
+      - ref-generate-python-client
+    secrets:
+      actor_name: ${{ secrets.actor_name }}
+      actor_token: ${{ secrets.actor_token }}
+      actor_email: ${{ secrets.actor_email }}

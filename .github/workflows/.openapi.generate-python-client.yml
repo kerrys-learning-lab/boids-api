@@ -1,4 +1,4 @@
-name: Generate OpenAPI Python Flask client
+name: Generate OpenAPI Python client
 
 on:
   workflow_call:
@@ -25,25 +25,24 @@ on:
         required: true
 
 env:
-  PYTHON_FLASK_GEN_DIR: python-flask-client
+  PYTHON_CLIENT_GEN_DIR: python-aiohttp-client
 
 jobs:
 
-  generate-python-flask-client:
+  generate-python-client:
     runs-on: ubuntu-latest
-    name: Generate OpenAPI Python Flask client
+    name: Generate OpenAPI Python  client
     permissions:
       id-token: write
-    needs: prerequisites
     steps:
 
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Generate OpenAPI Python Flask Client
+      - name: Generate OpenAPI Python Client
         uses: openapi-generators/openapitools-generator-action@v1
         with:
-          generator: python-flask
+          generator: python-aiohttp
           openapi-file: openapi.yaml
           command-args: >-
             --model-package ${{ inputs.model_package }}
@@ -53,27 +52,30 @@ jobs:
         uses: cuchi/jinja2-action@v1.2.0
         with:
           template: .pyproject.toml.j2
-          output_file: ${{ env.PYTHON_FLASK_GEN_DIR }}/pyproject.toml
+          output_file: ${{ env.PYTHON_CLIENT_GEN_DIR }}/pyproject.toml
           strict: true
           variables: |
             project_version=${{ needs.prerequisites.outputs.tag }}
 
       - name: Setup python
+        if: inputs.publish
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
       - name: Setup poetry
+        if: inputs.publish
         uses: abatilo/actions-poetry@v2
         with:
           poetry-version: '1.4.2'
 
       - name: Build python wheel
+        if: inputs.publish
         run: poetry build
-        working-directory: ${{ env.PYTHON_FLASK_GEN_DIR }}
+        working-directory: ${{ env.PYTHON_CLIENT_GEN_DIR }}
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         if: inputs.publish
         with:
-          packages-dir: ${{ env.PYTHON_FLASK_GEN_DIR }}/dist
+          packages-dir: ${{ env.PYTHON_CLIENT_GEN_DIR }}/dist
