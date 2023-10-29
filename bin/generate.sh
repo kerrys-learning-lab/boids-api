@@ -2,7 +2,7 @@
 
 
 
-for lang in typescript-angular python-flask python-aiohttp; do
+for lang in typescript-angular python-aiohttp; do
     if [[ -d ${PWD}/out/${lang} ]]; then
         rm -rf ${PWD}/out/${lang}/*.*
     fi
@@ -11,7 +11,7 @@ for lang in typescript-angular python-flask python-aiohttp; do
                 --volume "${PWD}:/local"                                    \
                 --user 1000:1000                                            \
                 "${@}"                                                      \
-                openapitools/openapi-generator-cli:v6.6.0                   \
+                openapitools/openapi-generator-cli:v7.0.1                   \
                     generate    --generator-name    ${lang}                 \
                                 --output            /local/out/${lang}      \
                                 --model-package     model                   \
