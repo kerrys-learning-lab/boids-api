@@ -1,0 +1,64 @@
+name: Generate OpenAPI Angular Client
+
+on:
+  workflow_call:
+    inputs:
+      publish:
+        description: If true, publishes to Github NPM package repository
+        type: boolean
+        default: true
+        required: false
+      model_package:
+        description: Angular package name (snake_case) for the domain model
+        type: string
+        required: true
+    secrets:
+      actor_token:
+        description: |
+          GITHUB_TOKEN or PAT authorized to make changes to the repository
+        required: true
+
+env:
+  TYPESCRIPT_GEN_DIR: typescript-angular-client
+
+jobs:
+
+  generate-angular-client:
+    runs-on: ubuntu-latest
+    name: Generate OpenAPI TypeScript client
+    needs: prerequisites
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Generate OpenAPI TypeScript Client
+        uses: openapi-generators/openapitools-generator-action@v1
+        with:
+          generator: typescript-angular
+          openapi-file: openapi.yaml
+          command-args: >-
+            --model-package ${{ inputs.model_package }}
+            --package-name ${{ inputs.package_name }}
+
+      - name: Generate NPM package configuration
+        uses: cuchi/jinja2-action@v1.2.0
+        with:
+          template: .package.json.j2
+          output_file: ${{ env.TYPESCRIPT_GEN_DIR }}/package.json
+          strict: true
+          variables: |
+            project_version=${{ needs.prerequisites.outputs.tag }}
+
+      - name: Generate NPM authentication file
+        uses: cuchi/jinja2-action@v1.2.0
+        with:
+          template: .npmrc.j2
+          output_file: ${{ env.TYPESCRIPT_GEN_DIR }}/.npmrc
+          strict: true
+          variables: |
+            github_token=${{ secrets.actor_token }}
+
+      - name: Publish package
+        run: npm publish
+        working-directory: ${{ env.TYPESCRIPT_GEN_DIR }}

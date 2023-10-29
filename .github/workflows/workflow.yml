@@ -1,136 +1,14 @@
-name: OpenAPI Workflow
+name: No-build workflow
 
 on: [push, workflow_dispatch]
 
-env:
-  OPENAPI_MODEL_PACKAGE: boids
-  OPENAPI_PACKAGE_NAME: boids_api
-  TYPESCRIPT_GEN_DIR: typescript-angular-client
-  PYTHON_FLASK_GEN_DIR: python-flask-client
-
 jobs:
-  prerequisites:
-    runs-on: ubuntu-latest
-    outputs:
-      openapi_files_exist: ${{ steps.openapi_files.outputs.files_exists }}
-      tag: ${{ steps.tag.outputs.tag }}
 
-    steps:
-
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Check file existence
-        id: openapi_files
-        uses: andstor/file-existence-action@v2
-        with:
-          files: openapi.yaml
-
-      # version_regex courtesy of https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
-      - name: Get tag
-        id: tag
-        run: |
-          version_regex="^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$"
-          TAG=${GITHUB_REF#refs/*/}
-          if [[ ! ${TAG} =~ ${version_regex} ]]; then
-            TAG=0.0.$(date +%s)
-          fi
-          echo "tag=${TAG}" | tee --append ${GITHUB_OUTPUT}
-
-
-  generate-angular-client:
-    runs-on: ubuntu-latest
-    name: Generate OpenAPI TypeScript client
-    needs: prerequisites
-    if: needs.prerequisites.outputs.openapi_files_exist == 'true'
-    steps:
-
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Generate OpenAPI TypeScript Client
-        uses: openapi-generators/openapitools-generator-action@v1
-        with:
-          generator: typescript-angular
-          openapi-file: openapi.yaml
-          command-args: >-
-            --model-package ${{ env.OPENAPI_MODEL_PACKAGE }}
-            --package-name ${{ env.OPENAPI_PACKAGE_NAME }}
-
-      - name: Generate NPM package configuration
-        uses: cuchi/jinja2-action@v1.2.0
-        with:
-          template: .package.json.j2
-          output_file: ${{ env.TYPESCRIPT_GEN_DIR }}/package.json
-          strict: true
-          variables: |
-            project_version=${{ needs.prerequisites.outputs.tag }}
-
-      - name: Generate NPM authentication file
-        uses: cuchi/jinja2-action@v1.2.0
-        with:
-          template: .npmrc.j2
-          output_file: ${{ env.TYPESCRIPT_GEN_DIR }}/.npmrc
-          strict: true
-          variables: |
-            github_token=${{ secrets.KERRYS_LEARNING_LAB_TOKEN }}
-
-      - name: Publish package
-        run: |
-          cd ${{ env.TYPESCRIPT_GEN_DIR }}
-          npm publish
-
-  generate-python-flask-client:
-    runs-on: ubuntu-latest
-    name: Generate OpenAPI Python Flask client
-    environment:
-      name: pypi
-      url: https://pypi.org/p/boids_api
-    permissions:
-      id-token: write
-    needs: prerequisites
-    if: needs.prerequisites.outputs.openapi_files_exist == 'true'
-    steps:
-
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Generate OpenAPI Python Flask Client
-        uses: openapi-generators/openapitools-generator-action@v1
-        with:
-          generator: python-flask
-          openapi-file: openapi.yaml
-          command-args: >-
-            --model-package ${{ env.OPENAPI_MODEL_PACKAGE }}
-            --package-name ${{ env.OPENAPI_PACKAGE_NAME }}
-
-      - name: Generate PyPi package configuration
-        uses: cuchi/jinja2-action@v1.2.0
-        with:
-          template: .pyproject.toml.j2
-          output_file: ${{ env.PYTHON_FLASK_GEN_DIR }}/pyproject.toml
-          strict: true
-          variables: |
-            project_version=${{ needs.prerequisites.outputs.tag }}
-
-      - name: Show package configuration
-        run: cat ${{ env.PYTHON_FLASK_GEN_DIR }}/pyproject.toml
-
-      - name: Setup python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Setup poetry
-        uses: abatilo/actions-poetry@v2
-        with:
-          poetry-version: '1.4.2'
-
-      - name: Build python wheel
-        run: poetry build
-        working-directory: ${{ env.PYTHON_FLASK_GEN_DIR }}
-
-      - name: Publish package distributions to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: ${{ env.PYTHON_FLASK_GEN_DIR }}/dist
+  ref-openapi:
+    uses: ./.github/workflows/.openapi.workflow.yml
+    with:
+      publish: true
+      model_package: boids
+      package_name: boids_api
+    secrets:
+      actor_token: ${{ secrets.KERRYS_LEARNING_LAB_TOKEN }}

@@ -1,115 +1,100 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
-    title: boids_api
+    title: Boids API
     version: 0.1.0
-    description: RESTful API for the Boids application
+    description: API for the Boids application
 
 servers:
-    - url: http://localhost:9090/api/v1
+    - url: http://boids-gateway.boids:8888/api/v1
       description: Development server
 
 paths:
-    /config:
+    /session:
         get:
-            description: Get the current simulation configuration
-            operationId: getSimulationConfig
-            tags:
-                - Simulation configuration
+            description: Retrieve the list of Boids sessions
+            parameters:
+                - $ref: "#/components/parameters/title_query"
+                - $ref: "#/components/parameters/state_query"
+                - $ref: "#/components/parameters/uuid_query"
+                - $ref: "#/components/parameters/order_by_query"
+                - $ref: "#/components/parameters/offset_query"
+                - $ref: "#/components/parameters/limit_query"
             responses:
                 200:
-                    description: The current simulation configuration
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/SimulationConfigStatus"
-        put:
-            description: Update the simulation configuration
-            operationId: putSimulationConfig
+                    $ref: "#/components/responses/session_list"
             tags:
-                - Simulation configuration
+                - Sessions
+        post:
+            description: >
+                Create a Boids session.
+
+                Required fields: title
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/SimulationConfigUpdateRequest"
+                            $ref: "#/components/schemas/SessionConfiguration"
             responses:
-                200:
-                    description: >
-                        The simulation configuration was successfully updated.
-                        The returned SimulationConfigStatus reflects the updates.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/SimulationConfigStatus"
+                201:
+                    $ref: "#/components/responses/session"
                 default:
-                    description: >
-                        The simulation configuration was not successfully update.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/ErrorModel"
-
-    /simulation:
-        get:
-            description: Get the current simulation status
-            operationId: getSimulation
+                    $ref: "#/components/responses/default"
             tags:
-                - Simulation control
+                - Sessions
+    /session/{uuid}:
+        get:
+            description: Retrieve the specified session
             responses:
                 200:
-                    description: The status
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/SimulationControlStatus"
+                    $ref: "#/components/responses/session"
 
-        put:
-            description: Modify the simulation state
-            operationId: putSimulation
+                default:
+                    $ref: "#/components/responses/default"
             tags:
-                - Simulation control
+                - Sessions
+        put:
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/SimulationControlUpdateRequest"
+                            $ref: "#/components/schemas/SessionConfiguration"
             responses:
                 200:
-                    description: The state has been updated as requested
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/SimulationControlStatus"
+                    $ref: "#/components/responses/session"
                 default:
-                    description: The state was not updated
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/ErrorModel"
-    /boid:
+                    $ref: "#/components/responses/default"
+            tags:
+                - Sessions
+        delete:
+            responses:
+                200:
+                    description: The Session was successfully deleted
+                default:
+                    $ref: "#/components/responses/default"
+            tags:
+                - Sessions
+        parameters:
+          - $ref: "#/components/parameters/uuid_path"
+
+    /session/{uuid}/boid:
         get:
             description: Return the list of Boids
-            operationId: getBoidList
             tags:
+                - Sessions
                 - Boids
             parameters:
-                - $ref: "#/components/parameters/sort_field"
-                - $ref: "#/components/parameters/sort_asc"
-                - $ref: "#/components/parameters/page_offset"
-                - $ref: "#/components/parameters/page_size"
+                - $ref: "#/components/parameters/order_by_query"
+                - $ref: "#/components/parameters/offset_query"
+                - $ref: "#/components/parameters/limit_query"
             responses:
                 200:
-                    description: Return a list of Boid objects
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/BoidList"
+                    $ref: "#/components/responses/boid_list"
         post:
             description: >
                 Create a Boid.  The 'id' and 'timestamp' fields must not be present.
                 The newly created Boid is assigned an ID by the simulation.
-            operationId: postBoid
             tags:
+                - Sessions
                 - Boids
             requestBody:
                 content:
@@ -118,67 +103,31 @@ paths:
                             $ref: "#/components/schemas/Boid"
             responses:
                 200:
-                    description: The created Boids, with assigned ID
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Boid"
+                    $ref: "#/components/responses/boid"
                 default:
                     description: One or more Boid was not created.
                     content:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ErrorModel"
-    /boid/{id}:
+        parameters:
+          - $ref: "#/components/parameters/uuid_path"
+
+    /session/{session_uuid}/boid/{boid_uuid}:
         get:
-            operationId: getBoid
             tags:
+                - Sessions
                 - Boids
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                      type: integer
-                      minimum: 1
-                - name: history
-                  in: query
-                  schema:
-                      type: integer
-                      minimum: 0
-                      maximum: 1000
-                      default: 0
             responses:
                 200:
-                    description: Return a specific Boid
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Boid"
-                400:
-                    description: Bad request - the request parameters (e.g. history) are invalid.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/ErrorModel"
-                404:
-                    description: Not found - the specified Boid could not be found.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/ErrorModel"
+                    $ref: "#/components/responses/boid"
+                default:
+                    $ref: "#/components/responses/default"
 
         delete:
-            operationId: deleteBoid
             tags:
+                - Sessions
                 - Boids
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                      type: integer
-                      minimum: 1
             responses:
                 204:
                     description: The specified Boid was deleted.
@@ -188,26 +137,50 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ErrorModel"
-    /event:
+        parameters:
+          - name: session_uuid
+            in: path
+            required: true
+            schema:
+                $ref: "#/components/schemas/UUID"
+          - name: boid_uuid
+            in: path
+            required: true
+            schema:
+                $ref: "#/components/schemas/UUID"
+
+    /session/{uuid}/event:
         get:
             description: Retrieve system events in reverse time order (most recent first)
-            operationId: getEvent
             parameters:
-                - $ref: "#/components/parameters/sort_field"
-                - $ref: "#/components/parameters/sort_asc"
-                - $ref: "#/components/parameters/page_offset"
-                - $ref: "#/components/parameters/page_size"
+                - $ref: "#/components/parameters/order_by_query"
+                - $ref: "#/components/parameters/offset_query"
+                - $ref: "#/components/parameters/limit_query"
             responses:
                 200:
-                    description: Return a list of Boid objects
-                    content:
-                        application/json:
-                            schema:
-                                type: array
-                                items:
-                                    $ref: "#/components/schemas/SystemEventList"
+                    $ref: "#/components/responses/system_event_list"
+            tags:
+                - Events
+        parameters:
+          - name: uuid
+            in: path
+            required: true
+            schema:
+                $ref: "#/components/schemas/UUID"
 
-    /kafka-topic/boids.boids:
+    /pubsub/sessions:
+        get:
+            responses:
+              default:
+                description: Stream of SessionConfiguration updates
+                content:
+                  application/json:
+                    schema:
+                        $ref: "#/components/schemas/SessionConfigurationStatus"
+            tags:
+                - Pub/sub Topics
+
+    /pubsub/boids.boids:
         get:
             responses:
                 default:
@@ -215,10 +188,21 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/Boid"
+                                $ref: "#/components/schemas/BoidTelemetryEvent"
             tags:
-                - kafka
-    /kafka-topic/boids.system-events:
+                - Pub/sub Topics
+    /pubsub/boids.system-time:
+        get:
+            responses:
+              default:
+                description: Stream of system time updates
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/SessionTimestamp"
+            tags:
+                - Pub/sub Topics
+    /pubsub/boids.system-events:
         get:
             responses:
                 default:
@@ -228,147 +212,134 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/SystemEvent"
             tags:
-                - kafka
+                - Pub/sub Topics
 
 components:
     parameters:
-        sort_field:
-            description: Field name to sort by
-            name: sort_field
+        uuid_path:
+            name: uuid
+            in: path
+            required: true
+            schema:
+                $ref: "#/components/schemas/UUID"
+
+        uuid_query:
+            name: uuid
+            in: query
+            schema:
+                $ref: "#/components/schemas/UUID"
+
+        title_query:
+            description: Filter SessionConfigurations by title.
+            name: title
             in: query
             schema:
                 type: string
-                default: "_id"
 
-        sort_asc:
-            description: Sort ascending vs descending
-            name: sort_asc
+        state_query:
+            description: Filter SessionConfigurations by state.
+            name: state
             in: query
             schema:
-                type: boolean
-                default: true
+                type: string
 
-        page_offset:
+        order_by_query:
+            description: >
+                Field name to sort by.  Defaults to ascending. For descending,
+                prepend a '-' minus.  Examples: 'title' (sorts by title ascending),
+                '-title' sorts by title descending)
+            name: order_by
+            in: query
+            schema:
+                type: string
+
+        offset_query:
             description: Pagination offset (0-based)
-            name: page_offset
+            name: offset
             in: query
             schema:
                 type: integer
                 minimum: 0
                 default: 0
 
-        page_size:
-            name: page_size
+        limit_query:
+            name: limit
             description: Pagination size
             in: query
             schema:
                 type: integer
                 minimum: 10
-                maximum: 50
-                default: 30
+                maximum: 500
+                default: 20
 
     schemas:
+        UUID:
+            type: string
+            format: uuid
+
+        URL:
+            type: string
+            format: uri
+
         Pagination:
             type: object
             properties:
-                sort_field:
+                order_by:
                     type: string
-                sort_asc:
-                    type: boolean
-                page_offset:
+                offset:
                     type: integer
-                page_size:
+                limit:
                     type: integer
-                pages_total:
+                total:
                     type: integer
             required:
-                - sort_field
-                - sort_asc
-                - page_offset
-                - page_size
+                - order_by
+                - offset
+                - limit
+                - total
 
-        IntegerRange:
+        SpeedRange:
             type: object
             properties:
                 min:
                     type: integer
+                    default: 1
                 max:
                     type: integer
+                    default: 100
             required:
                 - min
                 - max
 
-        SimulationControlStatus:
-            type: object
-            properties:
-                state:
-                    $ref: "#/components/schemas/SimulationState"
-                rate:
-                    type: number
-                    format: float
-                next_states:
-                    type: array
-                    items:
-                        $ref: "#/components/schemas/SimulationState"
-            required:
-                - state
-                - rate
-                - next_states
-
-        SimulationState:
+        SessionState:
             type: string
             enum:
+                - PENDING
                 - PAUSED
                 - RESET
                 - RUNNING
                 - STEP
+                - TERMINATED
+                - ARCHIVED
 
-        SimulationControlUpdateRequest:
-            type: object
-            properties:
-                state:
-                    $ref: "#/components/schemas/SimulationState"
-                rate:
-                    type: number
-                    format: float
-
-        WorldConfig:
+        WorldConfiguration:
             type: object
             properties:
                 width:
                     type: integer
                     format: int64
+                    default: 500
                 height:
                     type: integer
                     format: int64
+                    default: 500
             required:
                 - width
                 - height
 
-        WorldConfigStatus:
+        BehaviorConfiguration:
             type: object
             properties:
-                current:
-                    $ref: "#/components/schemas/WorldConfig"
-                defaults:
-                    $ref: "#/components/schemas/WorldConfig"
-                limits:
-                    type: object
-                    properties:
-                        width:
-                            $ref: "#/components/schemas/IntegerRange"
-                        height:
-                            $ref: "#/components/schemas/IntegerRange"
-            required:
-                - defaults
-                - limits
-
-        BoidsConfig:
-            type: object
-            properties:
-                quantity:
-                    type: integer
-                    format: int64
                 avoid_walls:
                     type: boolean
                     default: true
@@ -384,54 +355,63 @@ components:
                     minimum: 0
                     maximum: 359
                 speed_limits:
-                    $ref: "#/components/schemas/IntegerRange"
-            required:
-                - quantity
-                - avoid_walls
-                - view_range
-                - view_angle
-                - speed_limits
+                    $ref: "#/components/schemas/SpeedRange"
 
-        BoidsConfigStatus:
+        SessionConfiguration:
             type: object
+            description: >
+                Creates or updates a SessionConfiguration.
             properties:
-                current:
-                    $ref: "#/components/schemas/BoidsConfig"
-                defaults:
-                    $ref: "#/components/schemas/BoidsConfig"
-                limits:
-                    type: object
-                    properties:
-                        quantity:
-                            $ref: "#/components/schemas/IntegerRange"
-                        view_range:
-                            $ref: "#/components/schemas/IntegerRange"
-                        view_angle:
-                            $ref: "#/components/schemas/IntegerRange"
-                        speed:
-                            $ref: "#/components/schemas/IntegerRange"
-            required:
-                - defaults
-                - limits
+                title:
+                    type: string
+                    description: Session title
+                num_boids:
+                    type: integer
+                    format: int64
+                state:
+                    $ref: "#/components/schemas/SessionState"
+                world:
+                    $ref: "#/components/schemas/WorldConfiguration"
+                behavior:
+                    $ref: "#/components/schemas/BehaviorConfiguration"
 
-        SimulationConfigStatus:
+        SessionConfigurationStatus:
             type: object
-            properties:
-                world_config:
-                    $ref: "#/components/schemas/WorldConfigStatus"
-                boids_config:
-                    $ref: "#/components/schemas/BoidsConfigStatus"
-            required:
-                - world_config
-                - boids_config
+            allOf:
+              - $ref: "#/components/schemas/SessionConfiguration"
+              - type: object
+                properties:
+                    uuid:
+                        $ref: "#/components/schemas/UUID"
+                    url:
+                        $ref: "#/components/schemas/URL"
+                    next_states:
+                        type: array
+                        items:
+                            $ref: "#/components/schemas/SessionState"
+                    created:
+                        type: string
+                    modified:
+                        type: string
+                required:
+                  - uuid
+                  - url
+                  - state
+                  - next_states
 
-        SimulationConfigUpdateRequest:
+        SessionConfigurationStatusList:
             type: object
+            description: List of Boids sessions, possibly paginated
             properties:
-                world_config:
-                    $ref: "#/components/schemas/WorldConfig"
-                boids_config:
-                    $ref: "#/components/schemas/BoidsConfig"
+                values:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/SessionConfigurationStatus"
+                pagination:
+                    $ref: "#/components/schemas/Pagination"
+            required:
+                - values
+                - pagination
 
         CartesianTriple:
             type: object
@@ -449,10 +429,10 @@ components:
                 - x
                 - y
 
-        SimulationTimestamp:
+        SessionTimestamp:
             type: object
             description: >
-                Identifies a unique point in time for a simulation (a tick-stamp?).
+                Identifies a unique point in time for a simulation.
                 At tick 0, no movement has been initiated.
             properties:
                 tick:
@@ -461,31 +441,27 @@ components:
                 elapsed_time:
                     type: string
                     pattern: "\\d{1,}:[0-5]\\d:[0-5]\\d\\.\\d{3}"
-                wall_clock:
-                    type: string
-                    format: date-time
+                delta_time:
+                    type: number
+                    format: float
             required:
                 - tick
                 - elapsed_time
 
+
         Boid:
             type: object
             description: >
-                Describes a Boid at a particular simulation time.
+                Describes a Boid.
             properties:
-                id:
-                    type: string
-                timestamp:
-                    $ref: "#/components/schemas/SimulationTimestamp"
+                uuid:
+                    $ref: "#/components/schemas/UUID"
                 position:
                     $ref: "#/components/schemas/CartesianTriple"
                 velocity:
                     $ref: "#/components/schemas/CartesianTriple"
-                history:
-                    type: array
-                    items:
-                        $ref: "#/components/schemas/Boid"
-
+                url:
+                    $ref: "#/components/schemas/URL"
             required:
                 - position
                 - velocity
@@ -510,23 +486,56 @@ components:
                 - WARNING
                 - INFO
                 - STATUS
+                - TELEMETRY
 
         SystemEvent:
             type: object
+            description: >
+                Describes an occurance within the simulation
+            discriminator:
+              propertyName: event_type
             properties:
                 timestamp:
-                    $ref: "#/components/schemas/SimulationTimestamp"
+                    $ref: "#/components/schemas/SessionTimestamp"
                 level:
                     $ref: "#/components/schemas/SystemEventLevel"
-                source:
-                    type: string
-                message:
+                event_type:
                     type: string
             required:
                 - timestamp
                 - level
-                - source
-                - message
+                - event_type
+
+        SystemMessageEvent:
+            type: object
+            allOf:
+              - $ref: "#/components/schemas/SystemEvent"
+              - type: object
+                properties:
+                    source:
+                        type: string
+                    message:
+                        type: string
+                required:
+                  - source
+                  - message
+
+        BoidTelemetryEvent:
+            type: object
+            allOf:
+              - $ref: "#/components/schemas/SystemEvent"
+              - type: object
+                properties:
+                    id:
+                        type: string
+                    position:
+                        $ref: "#/components/schemas/CartesianTriple"
+                    velocity:
+                        $ref: "#/components/schemas/CartesianTriple"
+                required:
+                  - id
+                  - position
+                  - velocity
 
         SystemEventList:
             type: object
@@ -553,3 +562,51 @@ components:
                     type: integer
                     minimum: 100
                     maximum: 600
+
+    responses:
+        session:
+            description: Returns the Session
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/SessionConfigurationStatus"
+        session_list:
+            description: Returns 0..n Sessions
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/SessionConfigurationStatusList"
+        uuid:
+            description: Returns a UUID
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/UUID"
+        boid:
+            description: Returns the Boid
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Boid"
+        boid_list:
+            description: Return a list of Boid objects
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/BoidList"
+        system_event_list:
+            description: Return a list of system events
+            content:
+                application/json:
+                    schema:
+                        type: array
+                        items:
+                            $ref: "#/components/schemas/SystemEventList"
+
+        default:
+            description: >
+                Describes an error condition.
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/ErrorModel"
