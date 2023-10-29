@@ -40,7 +40,6 @@ jobs:
     uses: ./.github/workflows/.openapi.generate-angular-client.yml
     needs:
       - ref-prerequisites
-      - ref-build-and-push-image
       - ref-check-repo-settings
     with:
       publish: ${{ inputs.publish }}
@@ -52,7 +51,6 @@ jobs:
     uses: ./.github/workflows/.openapi.generate-python-client.yml
     needs:
       - ref-prerequisites
-      - ref-build-and-push-image
       - ref-check-repo-settings
     with:
       publish: ${{ inputs.publish }}
