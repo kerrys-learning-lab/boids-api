@@ -11,4 +11,6 @@ jobs:
       model_package: boids
       package_name: boids_api
     secrets:
-      actor_token: ${{ secrets.KERRYS_LEARNING_LAB_TOKEN }}
+      actor_name: ${{ secrets.actor_name }}
+      actor_token: ${{ secrets.actor_token }}
+      actor_email: ${{ secrets.actor_email }}
