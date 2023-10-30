@@ -18,6 +18,10 @@ on:
         description: Angular package name (snake_case) for the domain model
         type: string
         required: true
+      project_version:
+        description: The version to be pushed to Github's NPM package manager, if applicable
+        type: string
+        required: false
     secrets:
       actor_token:
         description: |
@@ -53,7 +57,7 @@ jobs:
           output_file: ${{ env.TYPESCRIPT_GEN_DIR }}/package.json
           strict: true
           variables: |
-            project_version=${{ needs.prerequisites.outputs.tag }}
+            project_version=${{ inputs.project_version }}
 
       - name: Generate NPM authentication file
         uses: cuchi/jinja2-action@v1.2.0

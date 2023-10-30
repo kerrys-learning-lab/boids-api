@@ -18,6 +18,10 @@ on:
         description: Python package name (snake_case) for the domain model
         type: string
         required: true
+      project_version:
+        description: The version to be pushed to PyPi, if applicable
+        type: string
+        required: false
     secrets:
       actor_token:
         description: |
@@ -55,7 +59,7 @@ jobs:
           output_file: ${{ env.PYTHON_CLIENT_GEN_DIR }}/pyproject.toml
           strict: true
           variables: |
-            project_version=${{ needs.prerequisites.outputs.tag }}
+            project_version=${{ inputs.project_version }}
 
       - name: Setup python
         if: inputs.publish
