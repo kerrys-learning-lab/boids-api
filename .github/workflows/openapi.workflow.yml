@@ -45,6 +45,7 @@ jobs:
     secrets:
       actor_token: ${{ secrets.actor_token }}
 
+
   ref-generate-angular-client:
     uses: ./.github/workflows/.openapi.generate-angular-client.yml
     needs:
