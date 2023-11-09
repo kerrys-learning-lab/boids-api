@@ -52,6 +52,7 @@ jobs:
       - ref-check-repo-settings
     steps:
       - run: echo ${{ needs.ref-prerequisites.outputs.tag }}
+      - run: echo ${{ needs.ref-prerequisites.outputs }}
 
 
   ref-generate-angular-client:
