@@ -45,6 +45,15 @@ jobs:
     secrets:
       actor_token: ${{ secrets.actor_token }}
 
+  foo:
+    runs-on: linux
+    needs:
+      - ref-prerequisites
+      - ref-check-repo-settings
+    steps:
+      - run: echo ${{ needs.ref-prerequisites.outputs.tag }}
+
+
   ref-generate-angular-client:
     uses: ./.github/workflows/.openapi.generate-angular-client.yml
     needs:
