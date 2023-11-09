@@ -57,7 +57,7 @@ jobs:
       package_name: ${{ inputs.package_name }}
       project_version: ${{ needs.ref-prerequisites.outputs.tag }}
     secrets:
-      actor_token: ${{ secrets.KERRYS_LEARNING_LAB_TOKEN }}
+      actor_token: ${{ secrets.actor_token }}
 
   ref-generate-python-client:
     uses: ./.github/workflows/.openapi.generate-python-client.yml
@@ -70,7 +70,7 @@ jobs:
       package_name: ${{ inputs.package_name }}
       project_version: ${{ needs.ref-prerequisites.outputs.tag }}
     secrets:
-      actor_token: ${{ secrets.KERRYS_LEARNING_LAB_TOKEN }}
+      actor_token: ${{ secrets.actor_token }}
 
   ref-bump-version:
     uses: kerrys-learning-lab/.github/.github/workflows/.bump-version.yml@main
